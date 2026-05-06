@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#000000">
+<title>Lighting Policies — Mind Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+:root {
+  --bg-0: #000000;
+  --bg-1: #050505;
+  --bg-2: #0a0a0a;
+  --bg-3: #111111;
+  --bg-4: #181818;
+  --border: rgba(255, 255, 255, 0.05);
+  --border-mid: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --text-1: #ffffff;
+  --text-2: #999999;
+  --text-3: #555555;
+  --text-4: #333333;
+  --city: #00e676;
+  --concept: #4dd0ff;
+  --theme: #ffaa00;
+  --index: #ffea00;
+  --meta: #ff5252;
+
+  --topbar-h: 68px;
+  --sidebar-w: 320px;
+  --detail-w: 320px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: var(--bg-0);
+  color: var(--text-1);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 300;
+  font-size: 13px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr var(--detail-w);
+  grid-template-rows: var(--topbar-h) 1fr;
+}
+/* The topbar is fixed/floating OVER the grid, so we need a spacer row.
+   The actual grid children (#sidebar, #main, #detail) sit in row 2.
+   We place a transparent spacer in row 1 via a pseudo-element trick —
+   instead we simply give the grid a first row height and let the fixed
+   topbar overlap it visually. */
+button { font-family: inherit; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 0; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+
+/* ───── LOADING ───── */
+#loading {
+  position: fixed; inset: 0;
+  background: var(--bg-0);
+  z-index: 9999;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  transition: opacity 0.3s;
+  padding: 24px;
+}
+#loading.hidden { opacity: 0; pointer-events: none; }
+.loading-logo {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; letter-spacing: 0.2em;
+  color: var(--text-2);
+  margin-bottom: 30px;
+  text-transform: uppercase;
+  text-align: center;
+}
+.loading-spinner {
+  width: 60px; height: 60px;
+  border: 1px solid var(--border-mid);
+  border-top-color: var(--concept);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text {
+  margin-top: 20px;
+  color: var(--text-3);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+}
+#loading-error {
+  display: none;
+  max-width: 540px;
+  text-align: center;
+  padding: 24px;
+  border: 1px solid var(--meta);
+  background: rgba(255, 82, 82, 0.04);
+}
+#loading-error.show { display: block; }
+#loading-error h3 {
+  color: var(--meta);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; letter-spacing: 0.15em;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+#loading-error p { color: var(--text-2); font-size: 13px; line-height: 1.6; margin-bottom: 14px; }
+#loading-error pre {
+  background: var(--bg-3);
+  border: 1px solid var(--border-mid);
+  padding: 12px 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; color: var(--concept);
+  text-align: left;
+  margin-bottom: 14px;
+  user-select: all;
+  overflow-x: auto;
+}
+
+/* ───── TOPBAR (glass) ───── */
+/* Fixed so it floats OVER sidebar/main — backdrop-filter needs real content beneath */
+#topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--topbar-h);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 24px;
+  background: rgba(5, 6, 10, 0.45);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  z-index: 1000;
+}
+/* Sidebar and main need to start below the fixed header */
+#sidebar, #main, #detail {
+  margin-top: 0;
+  /* They already sit in grid row 2 which starts at var(--topbar-h) */
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.topbar-left-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.topbar-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.topbar-right {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Logo link in center */
+.header-logo-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+.header-logo-img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  flex-shrink: 0;
+  opacity: 0.9;
+  transition: opacity 0.15s;
+}
+.header-logo-link:hover .header-logo-img { opacity: 1; }
+
+.hamburger {
+  display: none;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--text-1);
+  width: 34px; height: 34px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+  transition: background 0.15s;
+  border-radius: 8px;
+  font-size: 16px;
+}
+.hamburger:hover { background: rgba(255,255,255,0.1); }
+
+.logo { display: none; }
+.topbar-spacer { flex: 1; }
+
+/* ───── VIEW TABS — vertical, in sidebar ───── */
+.view-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-mid);
+  padding: 4px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+.view-tabs button {
+  background: transparent;
+  border: none;
+  color: var(--text-2);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+  padding: 9px 12px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  width: 100%;
+  text-align: left;
+}
+.view-tabs button:hover {
+  color: var(--text-1);
+  background: rgba(255,255,255,0.04);
+}
+.view-tabs button.active {
+  color: #000;
+  background: var(--concept);
+  font-weight: 600;
+  box-shadow: 0 0 18px rgba(77, 208, 255, 0.30);
+}
+.view-tabs button.active svg { stroke: #000; }
+.view-tabs button svg {
+  width: 15px; height: 15px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.6;
+  transition: stroke 0.18s ease;
+  flex-shrink: 0;
+}
+
+/* ───── FLOATING SEARCH ───── */
+.search-container {
+  position: fixed;
+  top: calc(var(--topbar-h) + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(360px, calc(100vw - 32px));
+  z-index: 890;
+}
+#search-box {
+  display: flex;
+  align-items: center;
+  background: rgba(13,15,20,0.75);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  padding: 0 12px;
+  gap: 8px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+  transition: border-color 0.15s;
+}
+.search-icon-inner {
+  color: var(--text-3);
+  font-size: 14px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+#search {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text-1);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 10px 0;
+  min-width: 0;
+}
+#search::placeholder { color: var(--text-3); font-weight: 300; }
+.search-container::before { display: none; }
+
+.search-toggle {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--border-mid);
+  color: var(--text-1);
+  width: 36px; height: 36px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+.search-toggle:hover { border-color: var(--concept); }
+
+/* ───── SIDEBAR ───── */
+#sidebar {
+  grid-row: 2;
+  background: rgba(8, 8, 8, 0.96);
+  backdrop-filter: blur(10px);
+  overflow-y: auto;
+  padding: 24px 18px 80px;
+  border-right: 1px solid var(--border);
+  transition: transform 0.3s ease;
+}
+.sidebar-close {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--border-mid);
+  color: var(--text-2);
+  font-size: 18px;
+  width: 30px; height: 30px;
+  cursor: pointer;
+  margin-bottom: 16px;
+  margin-left: auto;
+  border-radius: 4px;
+  align-items: center;
+  justify-content: center;
+}
+.section { margin-bottom: 28px; }
+.section h3 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: var(--text-2);
+  font-weight: 600;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+.layer-row, .city-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  cursor: pointer;
+  user-select: none;
+  font-size: 12px;
+  color: var(--text-1);
+  transition: color 0.15s;
+}
+.layer-row.off, .city-row.off { color: var(--text-3); }
+.layer-row.off .dot, .city-row.off .dot { opacity: 0.2; }
+.toggle {
+  width: 26px; height: 14px;
+  background: var(--bg-4);
+  border: 1px solid var(--border-mid);
+  border-radius: 7px;
+  position: relative;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.toggle::after {
+  content: '';
+  position: absolute;
+  width: 10px; height: 10px;
+  background: var(--text-3);
+  border-radius: 50%;
+  top: 1px; left: 1px;
+  transition: all 0.2s;
+}
+.layer-row.on .toggle, .city-row.on .toggle {
+  background: rgba(77, 208, 255, 0.2);
+  border-color: var(--concept);
+}
+.layer-row.on .toggle::after, .city-row.on .toggle::after {
+  left: 13px;
+  background: var(--concept);
+  box-shadow: 0 0 8px var(--concept);
+}
+.dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px currentColor;
+}
+.dot.city { background: var(--city); color: var(--city); }
+.dot.concept { background: var(--concept); color: var(--concept); }
+.dot.theme { background: var(--theme); color: var(--theme); }
+.dot.index { background: var(--index); color: var(--index); }
+.dot.meta { background: var(--meta); color: var(--meta); }
+.row-label { flex: 1; font-weight: 400; }
+.count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-3);
+  font-weight: 500;
+}
+.file-tree { display: flex; flex-direction: column; }
+.tree-group { margin-bottom: 12px; }
+.tree-group-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--text-3);
+  padding: 4px 0;
+  text-transform: uppercase;
+}
+.tree-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0 5px 12px;
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--text-2);
+  transition: color 0.12s;
+  border-left: 1px solid transparent;
+  padding-left: 11px;
+}
+.tree-item:hover { color: var(--text-1); }
+.tree-item.active {
+  color: var(--text-1);
+  border-left-color: var(--concept);
+  background: rgba(77, 208, 255, 0.04);
+}
+.tree-item .dot { width: 5px; height: 5px; }
+
+/* ───── MAIN ───── */
+#main {
+  grid-row: 2;
+  position: relative;
+  background: radial-gradient(ellipse at center, rgba(20, 20, 30, 0.4), var(--bg-0));
+  overflow: hidden;
+}
+#graph-svg, #canvas-svg { width: 100%; height: 100%; display: block; }
+.view-pane { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+.view-pane.active { display: block; }
+#reader {
+  padding: 40px 56px 80px;
+  overflow-y: auto;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-1);
+  font-weight: 400;
+  background: var(--bg-0);
+  height: 100%;
+}
+#reader-inner { max-width: 760px; margin: 0 auto; }
+#reader h1, #reader h2, #reader h3, #reader h4 {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 1.6em 0 0.6em;
+  color: var(--text-1);
+}
+#reader h1 { font-size: 28px; margin-top: 0; }
+#reader h2 { font-size: 20px; border-bottom: 1px solid var(--border-mid); padding-bottom: 8px; }
+#reader h3 { font-size: 16px; color: var(--concept); }
+#reader h4 { font-size: 14px; color: var(--text-2); }
+#reader p { margin-bottom: 1em; color: #ccc; }
+#reader ul, #reader ol { padding-left: 1.5em; margin-bottom: 1em; color: #ccc; }
+#reader li { margin-bottom: 0.3em; }
+#reader code {
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 2px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--theme);
+}
+#reader pre {
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  padding: 16px;
+  overflow-x: auto;
+  margin-bottom: 1em;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+#reader pre code { background: none; border: none; padding: 0; color: inherit; }
+#reader a {
+  color: var(--concept);
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(77, 208, 255, 0.4);
+  transition: all 0.12s;
+}
+#reader a:hover { color: var(--text-1); border-bottom-color: var(--text-1); }
+#reader a.wikilink {
+  color: var(--concept);
+  border-bottom-style: solid;
+  border-bottom-color: rgba(77, 208, 255, 0.3);
+  background: rgba(77, 208, 255, 0.04);
+  padding: 1px 4px;
+}
+#reader a.wikilink:hover { background: rgba(77, 208, 255, 0.12); }
+#reader a.wikilink.broken { color: var(--meta); border-bottom-color: rgba(255, 82, 82, 0.4); }
+#reader table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 12px;
+  display: block;
+  overflow-x: auto;
+}
+#reader th, #reader td {
+  border: 1px solid var(--border-mid);
+  padding: 8px 12px;
+  text-align: left;
+}
+#reader th {
+  background: var(--bg-3);
+  font-weight: 500;
+  color: var(--text-1);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+#reader td { color: var(--text-2); }
+#reader blockquote {
+  border-left: 2px solid var(--concept);
+  padding: 8px 16px;
+  margin: 1em 0;
+  background: rgba(77, 208, 255, 0.04);
+  color: var(--text-2);
+}
+#reader hr { border: none; border-top: 1px solid var(--border-mid); margin: 2em 0; }
+#reader strong { color: var(--text-1); font-weight: 600; }
+#reader em { color: var(--theme); }
+
+/* ───── GRAPH NODES/LINKS ───── */
+.node-group { cursor: pointer; }
+.node-circle { transition: r 0.15s, stroke-width 0.15s; }
+.node-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  fill: var(--text-2);
+  font-weight: 500;
+  pointer-events: none;
+  text-anchor: middle;
+}
+.node-group:hover .node-circle { stroke-width: 2.5; }
+.node-group:hover .node-label { fill: var(--text-1); }
+.node-group.selected .node-circle {
+  stroke-width: 3;
+  filter: drop-shadow(0 0 12px currentColor);
+}
+.node-group.dimmed { opacity: 0.18; }
+.link { stroke: rgba(255,255,255,0.08); stroke-width: 1; fill: none; }
+.link.highlighted { stroke: var(--concept); stroke-width: 1.5; opacity: 0.7; }
+.link.dimmed { opacity: 0.04; }
+
+/* ───── DETAIL PANEL ───── */
+#detail {
+  grid-row: 2;
+  background: rgba(8, 8, 8, 0.96);
+  backdrop-filter: blur(10px);
+  overflow-y: auto;
+  padding: 24px 18px;
+  border-left: 1px solid var(--border);
+  transition: transform 0.3s ease;
+}
+#detail.empty .detail-content { display: none; }
+#detail.empty::before {
+  content: 'НАВЕДІТЬ НА ВУЗОЛ\A АБО ОБЕРІТЬ ФАЙЛ';
+  white-space: pre;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: var(--text-3);
+  text-align: center;
+  display: block;
+  padding-top: 40%;
+  line-height: 1.8;
+}
+.detail-close {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--border-mid);
+  color: var(--text-2);
+  font-size: 16px;
+  width: 30px; height: 30px;
+  cursor: pointer;
+  margin-bottom: 16px;
+  margin-left: auto;
+  border-radius: 4px;
+  align-items: center;
+  justify-content: center;
+}
+.detail-header {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-mid);
+}
+.detail-category {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.detail-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-1);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.detail-row:last-child { border-bottom: none; }
+.detail-key { color: var(--text-3); font-weight: 400; flex-shrink: 0; }
+.detail-val { color: var(--text-1); text-align: right; word-break: break-word; }
+.tag-list { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+.tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  background: var(--bg-3);
+  border: 1px solid var(--border-mid);
+  padding: 2px 6px;
+  color: var(--text-2);
+  letter-spacing: 0.05em;
+}
+.detail-section { margin-top: 20px; }
+.detail-section h4 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: var(--text-2);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+.link-list { display: flex; flex-direction: column; gap: 4px; }
+.link-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all 0.12s;
+  border-radius: 3px;
+}
+.link-pill:hover {
+  border-color: var(--border-strong);
+  color: var(--text-1);
+  background: var(--bg-3);
+}
+.detail-actions {
+  margin-top: 18px;
+  display: flex;
+  gap: 6px;
+}
+.detail-actions button {
+  flex: 1;
+  background: var(--concept);
+  border: 1px solid var(--concept);
+  color: #000;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-radius: 3px;
+}
+.detail-actions button:hover { background: #fff; border-color: #fff; }
+.detail-actions button.secondary {
+  background: transparent;
+  color: var(--text-2);
+  border-color: var(--border-mid);
+  font-weight: 500;
+}
+.detail-actions button.secondary:hover {
+  border-color: var(--text-1);
+  color: var(--text-1);
+  background: rgba(255,255,255,0.04);
+}
+
+/* ───── ZOOM / STATUS ───── */
+#zoom-controls {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  z-index: 50;
+}
+#zoom-controls button {
+  width: 36px; height: 36px;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-mid);
+  color: var(--text-2);
+  cursor: pointer;
+  font-size: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  transition: all 0.15s;
+}
+#zoom-controls button:hover { border-color: var(--concept); color: var(--concept); }
+#status-bar {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  color: var(--text-3);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  z-index: 50;
+}
+#status-bar .pulse {
+  width: 6px; height: 6px;
+  background: var(--city);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--city);
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+#center-icon {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--text-3);
+  font-size: 14px;
+  pointer-events: none;
+}
+
+/* ───── BACKDROP ───── */
+.drawer-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 90;
+  backdrop-filter: blur(2px);
+}
+.drawer-backdrop.show { display: block; }
+
+/* ───── RESPONSIVE: TABLET ───── */
+@media (max-width: 1100px) {
+  body { grid-template-columns: var(--sidebar-w) 1fr; }
+  #detail {
+    position: fixed;
+    right: 0; top: var(--topbar-h);
+    width: var(--detail-w);
+    height: calc(100vh - var(--topbar-h));
+    z-index: 80;
+    transform: translateX(100%);
+  }
+  #detail.show { transform: translateX(0); }
+  .detail-close { display: flex; }
+}
+
+/* ───── RESPONSIVE: MOBILE ───── */
+@media (max-width: 768px) {
+  :root { --topbar-h: 56px; --sidebar-w: 280px; --detail-w: 280px; }
+  body { grid-template-columns: 1fr; }
+  .hamburger { display: flex; }
+
+  .logo .logo-full { display: none; }
+  .logo .logo-short { display: inline; }
+  .logo { font-size: 9px; }
+
+  .search-container {
+    width: calc(100vw - 24px);
+    top: calc(var(--topbar-h) + 8px);
+  }
+  #search { padding: 10px 14px 10px 36px; font-size: 12px; }
+  .search-toggle { display: none; }
+
+  #sidebar {
+    position: fixed;
+    top: var(--topbar-h);
+    left: 0;
+    width: var(--sidebar-w);
+    max-width: 88vw;
+    height: calc(100vh - var(--topbar-h));
+    z-index: 95;
+    transform: translateX(-100%);
+  }
+  #sidebar.show { transform: translateX(0); }
+  .sidebar-close { display: flex; }
+
+  .view-tabs button { padding: 8px 12px; font-size: 12px; }
+  .view-tabs button .tab-label { display: none; }
+  .view-tabs button svg { width: 17px; height: 17px; }
+
+  #reader { padding: 24px 20px 80px; }
+  #reader h1 { font-size: 22px; }
+  #reader h2 { font-size: 17px; }
+  #reader h3 { font-size: 15px; }
+
+  #zoom-controls { bottom: 16px; left: 16px; }
+  #status-bar { bottom: 16px; right: 16px; padding: 6px 10px; font-size: 8px; }
+}
+
+@media (max-width: 380px) {
+  .logo { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="loading-logo">МІСЬКЕ ОСВІТЛЕННЯ · MIND MAP</div>
+  <div class="loading-spinner"></div>
+  <div class="loading-text" id="loading-text">Завантаження манифесту…</div>
+  <div id="loading-error">
+    <h3>⚠ Не вдалося завантажити дані</h3>
+    <p>Браузер блокує читання локальних файлів через <code>file://</code>. Запустіть локальний HTTP-сервер у папці vault:</p>
+    <pre>python3 -m http.server 8000</pre>
+    <p>Потім відкрийте <strong>http://localhost:8000</strong></p>
+    <p style="font-size:11px;color:var(--text-3);margin-top:10px"><span id="error-detail"></span></p>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <!-- Left: text label -->
+  <div class="topbar-left">
+    <span class="topbar-left-text">СВІТЛОВІ МАЙСТЕР-ПЛАНИ ПЛАНЕТИ</span>
+  </div>
+
+  <!-- Center: logo → links to site -->
+  <div class="topbar-center">
+    <a href="https://pidsvitu.com/" target="_blank" rel="noopener" class="header-logo-link">
+      <img class="header-logo-img" src="logo2.png" alt="LOGO" />
+    </a>
+  </div>
+
+  <!-- Right: hamburger (mobile) -->
+  <div class="topbar-right">
+    <button class="hamburger" id="btn-hamburger" aria-label="Меню">☰</button>
+  </div>
+</div>
+
+<!-- FLOATING SEARCH (below header, centered) -->
+<div class="search-container" id="search-container">
+  <div id="search-box">
+    <span class="search-icon-inner">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </span>
+    <input id="search" type="text" placeholder="Пошук вулиці" autocomplete="off">
+  </div>
+</div>
+
+<div class="drawer-backdrop" id="drawer-backdrop"></div>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <button class="sidebar-close" id="btn-sidebar-close" aria-label="Закрити">×</button>
+  <div class="view-tabs" role="tablist">
+    <button data-view="graph" class="active" role="tab" title="Граф зв'язків між файлами">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><path d="M12 6 L6 18 M12 6 L18 18 M6 18 L18 18"/></svg>
+      <span class="tab-label">Граф</span>
+    </button>
+    <button data-view="reader" role="tab" title="Читач документа">
+      <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 8h8 M8 12h8 M8 16h5"/></svg>
+      <span class="tab-label">Читач</span>
+    </button>
+    <button data-view="canvas" role="tab" title="Візуальна Canvas-мапа">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><path d="M10 6.5h4 M10 17.5h4 M6.5 10v4 M17.5 10v4"/></svg>
+      <span class="tab-label">Canvas</span>
+    </button>
+  </div>
+  <div class="section">
+    <h3>ШАРИ</h3>
+    <div id="layers"></div>
+  </div>
+  <div class="section">
+    <h3>МІСТА</h3>
+    <div id="cities-filter"></div>
+  </div>
+  <div class="section">
+    <h3>ФАЙЛИ</h3>
+    <div id="file-tree" class="file-tree"></div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main id="main">
+  <div class="view-pane active" id="graph-pane"><svg id="graph-svg"></svg></div>
+  <div class="view-pane" id="reader-pane">
+    <div id="reader"><div id="reader-inner"></div></div>
+  </div>
+  <div class="view-pane" id="canvas-pane"><svg id="canvas-svg"></svg></div>
+  <div id="zoom-controls">
+    <button id="zoom-in" title="Збільшити">+</button>
+    <button id="zoom-out" title="Зменшити">−</button>
+    <button id="zoom-reset" title="Скинути">⌂</button>
+  </div>
+  <div id="status-bar">
+    <span class="pulse"></span>
+    <span id="status-text">VAULT LOADING…</span>
+  </div>
+  <div id="center-icon">◇</div>
+</main>
+
+<!-- DETAIL PANEL -->
+<aside id="detail" class="empty">
+  <button class="detail-close" id="btn-detail-close" aria-label="Закрити">×</button>
+  <div class="detail-content" id="detail-content"></div>
+</aside>
+
+<script>
+(async function () {
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => document.querySelectorAll(s);
+
+  const CATEGORY_INFO = {
+    city: { label: 'Місто', cssClass: 'city' },
+    concept: { label: 'Концепт', cssClass: 'concept' },
+    theme: { label: 'Тема', cssClass: 'theme' },
+    index: { label: 'Індекс', cssClass: 'index' },
+    meta: { label: 'Мета', cssClass: 'meta' }
+  };
+  const CITY_LIST = ['Lyon','Zürich','Vienna','Geneva','Amsterdam','Copenhagen','Madrid'];
+  const CITY_LABELS = {
+    Lyon: 'Ліон', Zürich: 'Цюрих', Vienna: 'Відень',
+    Geneva: 'Женева', Amsterdam: 'Амстердам',
+    Copenhagen: 'Копенгаген', Madrid: 'Мадрид'
+  };
+
+  // ───── DATA LOADING ─────
+  function categorize(path, name) {
+    if (path.startsWith('cities/')) {
+      let city = '';
+      for (const c of CITY_LIST) {
+        if (name.startsWith(c)) { city = c; break; }
+      }
+      return { category: 'city', city };
+    }
+    if (path.startsWith('concepts/')) return { category: 'concept', city: '' };
+    if (name.startsWith('00') || name.startsWith('02')) return { category: 'index', city: '' };
+    if (name.startsWith('01') || name === 'Sources') return { category: 'meta', city: '' };
+    if (/^(10|11|12|13)/.test(name)) return { category: 'theme', city: '' };
+    return { category: 'meta', city: '' };
+  }
+
+  function parseFile(path, content) {
+    const name = path.split('/').pop().replace(/\.md$/, '');
+    const { category, city } = categorize(path, name);
+    let tags = [];
+    const fm = content.match(/^---\n([\s\S]*?)\n---/);
+    if (fm) {
+      const tagMatch = fm[1].match(/tags:\s*\[(.*?)\]/);
+      if (tagMatch) tags = tagMatch[1].split(',').map(s => s.trim()).filter(Boolean);
+    }
+    const links = [];
+    const reLink = /\[\[([^\]|]+?)(?:\||\])/g;
+    let m;
+    while ((m = reLink.exec(content))) {
+      const target = m[1].split('/').pop().trim();
+      if (!target.endsWith('.canvas') && !links.includes(target)) {
+        links.push(target);
+      }
+    }
+    return { path, name, category, city, content, tags, links };
+  }
+
+  async function loadData() {
+    const setText = (t) => { $('#loading-text').textContent = t; };
+    setText('Завантаження манифесту…');
+    let manifest;
+    try {
+      const r = await fetch('./_manifest.json', { cache: 'no-store' });
+      if (!r.ok) throw new Error('manifest fetch ' + r.status);
+      manifest = await r.json();
+    } catch (e) {
+      throw new Error('Не вдалося прочитати _manifest.json. ' + e.message);
+    }
+    setText(`Завантаження ${manifest.files.length} файлів…`);
+    const filePromises = manifest.files.map(async (path) => {
+      const r = await fetch('./' + encodeURI(path), { cache: 'no-store' });
+      if (!r.ok) throw new Error(`fetch ${path}: ${r.status}`);
+      const content = await r.text();
+      return { path, content };
+    });
+    const canvasPromise = fetch('./' + encodeURI(manifest.canvas), { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : { nodes: [], edges: [] })
+      .catch(() => ({ nodes: [], edges: [] }));
+
+    const [files, canvas] = await Promise.all([Promise.all(filePromises), canvasPromise]);
+
+    setText('Парсинг…');
+    const vault = {};
+    files.forEach(({ path, content }) => {
+      const f = parseFile(path, content);
+      vault[f.name] = f;
+    });
+    return { vault, canvas };
+  }
+
+  let DATA;
+  try {
+    DATA = await loadData();
+  } catch (err) {
+    console.error(err);
+    $('.loading-spinner').style.display = 'none';
+    $('#loading-text').style.display = 'none';
+    $('.loading-logo').style.marginBottom = '20px';
+    $('#loading-error').classList.add('show');
+    $('#error-detail').textContent = err.message || String(err);
+    return;
+  }
+
+  const VAULT = DATA.vault;
+  const CANVAS = DATA.canvas;
+  const state = {
+    view: 'graph',
+    selectedFile: null,
+    layerEnabled: { city: true, concept: true, theme: true, index: true, meta: true },
+    cityEnabled: Object.fromEntries(CITY_LIST.map(c => [c, true])),
+    search: ''
+  };
+  const counts = { city: 0, concept: 0, theme: 0, index: 0, meta: 0 };
+  Object.values(VAULT).forEach(f => { counts[f.category] = (counts[f.category] || 0) + 1; });
+
+  // ───── HELPERS ─────
+  function escapeAttr(s) { return String(s).replace(/"/g, '&quot;'); }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  }
+
+  // ───── SIDEBAR ─────
+  function renderLayers() {
+    const html = [
+      ['city', 'Міста'],
+      ['concept', 'Концепти'],
+      ['theme', 'Теми'],
+      ['index', 'Індекси'],
+      ['meta', 'Мета']
+    ].map(([key, label]) => `
+      <div class="layer-row ${state.layerEnabled[key] ? 'on' : 'off'}" data-layer="${key}">
+        <div class="toggle"></div>
+        <div class="dot ${key}"></div>
+        <div class="row-label">${label}</div>
+        <div class="count">${counts[key] || 0}</div>
+      </div>
+    `).join('');
+    $('#layers').innerHTML = html;
+    $$('#layers .layer-row').forEach(el => {
+      el.addEventListener('click', () => {
+        const key = el.dataset.layer;
+        state.layerEnabled[key] = !state.layerEnabled[key];
+        el.classList.toggle('on');
+        el.classList.toggle('off');
+        applyFilters();
+      });
+    });
+  }
+
+  function renderCitiesFilter() {
+    $('#cities-filter').innerHTML = CITY_LIST.map(c => `
+      <div class="city-row ${state.cityEnabled[c] ? 'on' : 'off'}" data-city="${c}">
+        <div class="toggle"></div>
+        <div class="dot city"></div>
+        <div class="row-label">${CITY_LABELS[c]}</div>
+        <div class="count">4</div>
+      </div>
+    `).join('');
+    $$('#cities-filter .city-row').forEach(el => {
+      el.addEventListener('click', () => {
+        const c = el.dataset.city;
+        state.cityEnabled[c] = !state.cityEnabled[c];
+        el.classList.toggle('on');
+        el.classList.toggle('off');
+        applyFilters();
+      });
+    });
+  }
+
+  function renderFileTree() {
+    const groups = { 'Кореневі': [], 'Міста': [], 'Концепти': [] };
+    Object.values(VAULT).forEach(f => {
+      if (f.category === 'city') groups['Міста'].push(f);
+      else if (f.category === 'concept') groups['Концепти'].push(f);
+      else groups['Кореневі'].push(f);
+    });
+    Object.values(groups).forEach(arr => arr.sort((a, b) => a.name.localeCompare(b.name)));
+    const html = Object.entries(groups).map(([label, arr]) => `
+      <div class="tree-group">
+        <div class="tree-group-label">${label} · ${arr.length}</div>
+        ${arr.map(f => `
+          <div class="tree-item" data-name="${escapeAttr(f.name)}">
+            <div class="dot ${CATEGORY_INFO[f.category].cssClass}"></div>
+            <div>${escapeHtml(f.name.replace(/_/g, ' '))}</div>
+          </div>
+        `).join('')}
+      </div>
+    `).join('');
+    $('#file-tree').innerHTML = html;
+    $$('#file-tree .tree-item').forEach(el => {
+      el.addEventListener('click', () => {
+        selectFile(el.dataset.name);
+        if (window.innerWidth <= 768) closeDrawer();
+      });
+    });
+  }
+
+  function highlightTreeActive(name) {
+    $$('#file-tree .tree-item').forEach(el => {
+      el.classList.toggle('active', el.dataset.name === name);
+    });
+  }
+
+  // ───── GRAPH ─────
+  let graphSim = null, graphZoom = null, graphSvgSel = null;
+
+  function buildGraph() {
+    const nodes = Object.values(VAULT).map(f => ({ id: f.name, ...f }));
+    const nodeIds = new Set(nodes.map(n => n.id));
+    const links = [];
+    Object.values(VAULT).forEach(f => {
+      f.links.forEach(target => {
+        if (nodeIds.has(target) && target !== f.name) {
+          links.push({ source: f.name, target });
+        }
+      });
+    });
+    return { nodes, links };
+  }
+
+  function renderGraph() {
+    const { nodes, links } = buildGraph();
+    const svg = d3.select('#graph-svg');
+    const { width, height } = $('#graph-pane').getBoundingClientRect();
+    svg.selectAll('*').remove();
+    svg.attr('viewBox', [0, 0, width, height]);
+    const g = svg.append('g');
+
+    graphZoom = d3.zoom().scaleExtent([0.2, 4]).on('zoom', (e) => g.attr('transform', e.transform));
+    svg.call(graphZoom);
+
+    const link = g.append('g').attr('class', 'links')
+      .selectAll('line').data(links).enter().append('line').attr('class', 'link');
+
+    const colorMap = { city: '#00e676', concept: '#4dd0ff', theme: '#ffaa00', index: '#ffea00', meta: '#ff5252' };
+    const sizeMap = { index: 14, theme: 11, city: 10, meta: 8, concept: 7 };
+
+    const nodeG = g.append('g').attr('class', 'nodes')
+      .selectAll('g').data(nodes).enter()
+      .append('g').attr('class', 'node-group')
+      .attr('data-name', d => d.id)
+      .call(d3.drag()
+        .on('start', (e, d) => { if (!e.active) graphSim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+        .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
+        .on('end', (e, d) => { if (!e.active) graphSim.alphaTarget(0); d.fx = null; d.fy = null; }))
+      .on('click', (e, d) => { e.stopPropagation(); selectFile(d.id); })
+      .on('mouseenter', (e, d) => { showDetail(d); highlightConnected(d.id); })
+      .on('mouseleave', () => { if (!state.selectedFile) clearDetail(); clearHighlight(); });
+
+    nodeG.append('circle').attr('class', 'node-circle')
+      .attr('r', d => sizeMap[d.category] || 7)
+      .attr('fill', d => colorMap[d.category]).attr('fill-opacity', 0.15)
+      .attr('stroke', d => colorMap[d.category]).attr('stroke-width', 1.5)
+      .style('color', d => colorMap[d.category]);
+
+    nodeG.append('text').attr('class', 'node-label')
+      .attr('y', d => (sizeMap[d.category] || 7) + 14)
+      .text(d => {
+        let n = d.name.replace(/^[0-9]+_/, '').replace(/_/g, ' ');
+        return n.length > 22 ? n.slice(0, 20) + '…' : n;
+      });
+
+    graphSim = d3.forceSimulation(nodes)
+      .force('link', d3.forceLink(links).id(d => d.id)
+        .distance(d => (d.source.category === 'index' || d.target.category === 'index') ? 140 : 80)
+        .strength(0.4))
+      .force('charge', d3.forceManyBody().strength(-260))
+      .force('center', d3.forceCenter(width / 2, height / 2))
+      .force('collide', d3.forceCollide().radius(d => (sizeMap[d.category] || 7) + 12))
+      .on('tick', () => {
+        link.attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+            .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+        nodeG.attr('transform', d => `translate(${d.x},${d.y})`);
+      });
+
+    graphSvgSel = svg;
+    svg.on('click', () => {
+      state.selectedFile = null;
+      clearDetail(); clearHighlight();
+      $$('.node-group').forEach(n => n.classList.remove('selected'));
+      highlightTreeActive(null);
+    });
+  }
+
+  function highlightConnected(name) {
+    if (!graphSvgSel) return;
+    const connected = new Set([name]);
+    Object.values(VAULT).forEach(f => {
+      if (f.name === name) f.links.forEach(l => { if (VAULT[l]) connected.add(l); });
+      else if (f.links.includes(name)) connected.add(f.name);
+    });
+    graphSvgSel.selectAll('.node-group').each(function (d) {
+      this.classList.toggle('dimmed', !connected.has(d.id));
+    });
+    graphSvgSel.selectAll('.link').each(function (l) {
+      const a = (l.source.id || l.source);
+      const b = (l.target.id || l.target);
+      if (a === name || b === name) { this.classList.add('highlighted'); this.classList.remove('dimmed'); }
+      else { this.classList.remove('highlighted'); this.classList.add('dimmed'); }
+    });
+  }
+  function clearHighlight() {
+    if (!graphSvgSel) return;
+    graphSvgSel.selectAll('.node-group').each(function () { this.classList.remove('dimmed'); });
+    graphSvgSel.selectAll('.link').each(function () {
+      this.classList.remove('highlighted'); this.classList.remove('dimmed');
+    });
+  }
+
+  function applyFilters() {
+    if (!graphSvgSel) return;
+    const search = state.search.toLowerCase();
+    graphSvgSel.selectAll('.node-group').each(function (d) {
+      let visible = state.layerEnabled[d.category];
+      if (visible && d.category === 'city' && d.city) visible = state.cityEnabled[d.city];
+      if (visible && search) {
+        visible = d.name.toLowerCase().includes(search) || d.content.toLowerCase().includes(search);
+      }
+      this.style.display = visible ? '' : 'none';
+    });
+    graphSvgSel.selectAll('.link').each(function (l) {
+      const a = (l.source.id || l.source);
+      const b = (l.target.id || l.target);
+      const fa = VAULT[a], fb = VAULT[b];
+      if (!fa || !fb) { this.style.display = 'none'; return; }
+      let v = state.layerEnabled[fa.category] && state.layerEnabled[fb.category];
+      if (v && fa.category === 'city' && fa.city) v = v && state.cityEnabled[fa.city];
+      if (v && fb.category === 'city' && fb.city) v = v && state.cityEnabled[fb.city];
+      this.style.display = v ? '' : 'none';
+    });
+  }
+
+  // ───── CANVAS ─────
+  function renderCanvas() {
+    const svg = d3.select('#canvas-svg');
+    svg.selectAll('*').remove();
+    if (!CANVAS.nodes || !CANVAS.nodes.length) {
+      svg.append('text').attr('x', '50%').attr('y', '50%').attr('text-anchor', 'middle')
+        .attr('fill', 'var(--text-3)').attr('font-family', 'JetBrains Mono')
+        .text('Canvas порожній');
+      return;
+    }
+    const { width, height } = $('#canvas-pane').getBoundingClientRect();
+    svg.attr('viewBox', [0, 0, width, height]);
+    const g = svg.append('g');
+
+    const xs = CANVAS.nodes.map(n => n.x);
+    const ys = CANVAS.nodes.map(n => n.y);
+    const xs2 = CANVAS.nodes.map(n => n.x + n.width);
+    const ys2 = CANVAS.nodes.map(n => n.y + n.height);
+    const minX = Math.min(...xs), maxX = Math.max(...xs2);
+    const minY = Math.min(...ys), maxY = Math.max(...ys2);
+    const cw = maxX - minX, ch = maxY - minY;
+    const scale = Math.min(width / (cw + 200), height / (ch + 200));
+    const offsetX = (width - cw * scale) / 2 - minX * scale;
+    const offsetY = (height - ch * scale) / 2 - minY * scale;
+
+    const COLOR_MAP = { '1': '#ff5252', '2': '#ffaa00', '3': '#00e676', '4': '#ffea00', '5': '#4dd0ff', '6': '#a78bfa' };
+    const edges = CANVAS.edges.map(e => {
+      const from = CANVAS.nodes.find(n => n.id === e.fromNode);
+      const to = CANVAS.nodes.find(n => n.id === e.toNode);
+      return { ...e, from, to };
+    });
+
+    g.append('g').selectAll('path').data(edges).enter().append('path')
+      .attr('d', e => {
+        if (!e.from || !e.to) return '';
+        const fcx = e.from.x + e.from.width / 2;
+        const fcy = e.from.y + e.from.height / 2;
+        const tcx = e.to.x + e.to.width / 2;
+        const tcy = e.to.y + e.to.height / 2;
+        const mx = (fcx + tcx) / 2;
+        return `M${fcx},${fcy} Q${mx},${fcy} ${mx},${(fcy + tcy) / 2} T${tcx},${tcy}`;
+      })
+      .attr('fill', 'none')
+      .attr('stroke', e => e.color ? COLOR_MAP[e.color] : 'rgba(255,255,255,0.15)')
+      .attr('stroke-width', 1.5).attr('opacity', 0.5);
+
+    g.append('g').selectAll('text').data(edges.filter(e => e.label && e.from && e.to)).enter()
+      .append('text')
+      .attr('x', e => (e.from.x + e.from.width / 2 + e.to.x + e.to.width / 2) / 2)
+      .attr('y', e => (e.from.y + e.from.height / 2 + e.to.y + e.to.height / 2) / 2 - 8)
+      .attr('text-anchor', 'middle')
+      .attr('font-family', 'JetBrains Mono, monospace').attr('font-size', 14)
+      .attr('fill', e => e.color ? COLOR_MAP[e.color] : 'rgba(255,255,255,0.5)')
+      .text(e => e.label);
+
+    const nodeGroups = g.append('g').selectAll('g').data(CANVAS.nodes).enter()
+      .append('g')
+      .style('cursor', d => d.type === 'file' ? 'pointer' : 'default')
+      .on('click', (e, d) => {
+        if (d.type === 'file') {
+          const name = d.file.split('/').pop().replace(/\.md$/, '');
+          selectFile(name);
+          state.view = 'reader';
+          updateView();
+        }
+      });
+
+    nodeGroups.append('rect')
+      .attr('x', d => d.x).attr('y', d => d.y)
+      .attr('width', d => d.width).attr('height', d => d.height)
+      .attr('rx', 4)
+      .attr('fill', d => d.type === 'text' ? 'transparent' : (d.color ? COLOR_MAP[d.color] + '15' : 'rgba(255,255,255,0.04)'))
+      .attr('stroke', d => d.type === 'text' ? 'rgba(255,255,255,0.18)' : (d.color ? COLOR_MAP[d.color] : 'rgba(255,255,255,0.4)'))
+      .attr('stroke-width', 2);
+
+    nodeGroups.append('foreignObject')
+      .attr('x', d => d.x + 10).attr('y', d => d.y + 8)
+      .attr('width', d => d.width - 20).attr('height', d => d.height - 16)
+      .append('xhtml:div')
+      .attr('style', 'color:#fff;font-family:Inter,sans-serif;font-size:13px;line-height:1.3;font-weight:500;')
+      .html(d => {
+        if (d.type === 'text') return window.marked ? marked.parse(d.text) : d.text;
+        const name = (d.file || '').split('/').pop().replace(/\.md$/, '').replace(/_/g, ' ');
+        return escapeHtml(name);
+      });
+
+    const canvasZoom = d3.zoom().scaleExtent([0.05, 4]).on('zoom', (e) => g.attr('transform', e.transform));
+    svg.call(canvasZoom);
+    svg.call(canvasZoom.transform, d3.zoomIdentity.translate(offsetX, offsetY).scale(scale));
+  }
+
+  // ───── READER ─────
+  function renderReader(name) {
+    const file = VAULT[name];
+    if (!file) {
+      $('#reader-inner').innerHTML = '<p style="color:var(--text-3)">Файл не знайдено</p>';
+      return;
+    }
+    let md = file.content.replace(/^---\n[\s\S]*?\n---\n/, '');
+    md = md.replace(/\[\[([^\]|]+?)(\|([^\]]+))?\]\]/g, (m, target, _, alias) => {
+      const cleanTarget = target.split('/').pop().trim();
+      const display = alias || cleanTarget.replace(/_/g, ' ');
+      const isCanvas = cleanTarget.endsWith('.canvas');
+      if (isCanvas) {
+        return `<a href="javascript:void(0)" data-action="canvas" class="wikilink">${escapeHtml(display)}</a>`;
+      }
+      const exists = !!VAULT[cleanTarget];
+      const cls = exists ? 'wikilink' : 'wikilink broken';
+      return `<a href="javascript:void(0)" data-action="open" data-target="${escapeAttr(cleanTarget)}" class="${cls}">${escapeHtml(display)}</a>`;
+    });
+    $('#reader-inner').innerHTML = window.marked ? marked.parse(md) : `<pre>${escapeHtml(md)}</pre>`;
+    $('#reader').scrollTop = 0;
+    $$('#reader-inner a[data-action="open"]').forEach(a => {
+      a.addEventListener('click', () => selectFile(a.dataset.target));
+    });
+    $$('#reader-inner a[data-action="canvas"]').forEach(a => {
+      a.addEventListener('click', () => { state.view = 'canvas'; updateView(); });
+    });
+  }
+
+  // ───── DETAIL PANEL ─────
+  function showDetail(file) {
+    const ci = CATEGORY_INFO[file.category] || CATEGORY_INFO.meta;
+    const linkedFromHere = (file.links || []).filter(l => VAULT[l]);
+    const linkedTo = Object.values(VAULT).filter(f => f.links.includes(file.name)).map(f => f.name);
+    const tagsHtml = (file.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
+    const linksOutHtml = linkedFromHere.map(l => `<div class="link-pill" data-target="${escapeAttr(l)}">→ ${escapeHtml(l.replace(/_/g, ' '))}</div>`).join('');
+    const linksInHtml = linkedTo.map(l => `<div class="link-pill" data-target="${escapeAttr(l)}">← ${escapeHtml(l.replace(/_/g, ' '))}</div>`).join('');
+
+    $('#detail').classList.remove('empty');
+    $('#detail-content').innerHTML = `
+      <div class="detail-header">
+        <div class="detail-category"><div class="dot ${ci.cssClass}"></div>${ci.label}${file.city ? ' · ' + (CITY_LABELS[file.city] || file.city) : ''}</div>
+        <div class="detail-title">${escapeHtml(file.name.replace(/_/g, ' '))}</div>
+      </div>
+      <div class="detail-row"><span class="detail-key">Шлях</span><span class="detail-val" style="font-family:'JetBrains Mono',monospace;font-size:10px">${escapeHtml(file.path)}</span></div>
+      <div class="detail-row"><span class="detail-key">Категорія</span><span class="detail-val">${ci.label}</span></div>
+      ${file.city ? `<div class="detail-row"><span class="detail-key">Місто</span><span class="detail-val">${CITY_LABELS[file.city] || file.city}</span></div>` : ''}
+      <div class="detail-row"><span class="detail-key">Розмір</span><span class="detail-val">${file.content.length.toLocaleString()} chars</span></div>
+      <div class="detail-row"><span class="detail-key">Посилання</span><span class="detail-val">${linkedFromHere.length} вих · ${linkedTo.length} вх</span></div>
+      ${tagsHtml ? `<div class="detail-row"><span class="detail-key">Теги</span><span class="detail-val tag-list">${tagsHtml}</span></div>` : ''}
+      ${linksOutHtml ? `<div class="detail-section"><h4>Посилається на</h4><div class="link-list">${linksOutHtml}</div></div>` : ''}
+      ${linksInHtml ? `<div class="detail-section"><h4>Посилаються сюди</h4><div class="link-list">${linksInHtml}</div></div>` : ''}
+      <div class="detail-actions">
+        <button data-action="open">Відкрити</button>
+        <button class="secondary" data-action="graph">Граф</button>
+      </div>
+    `;
+    $$('#detail-content .link-pill').forEach(el => el.addEventListener('click', () => selectFile(el.dataset.target)));
+    $$('#detail-content button[data-action="open"]').forEach(b => b.addEventListener('click', () => {
+      state.view = 'reader'; updateView();
+      if (window.innerWidth <= 1100) closeDetailDrawer();
+    }));
+    $$('#detail-content button[data-action="graph"]').forEach(b => b.addEventListener('click', () => {
+      state.view = 'graph'; updateView();
+      if (window.innerWidth <= 1100) closeDetailDrawer();
+    }));
+  }
+  function clearDetail() {
+    if (!state.selectedFile) {
+      $('#detail').classList.add('empty');
+      $('#detail-content').innerHTML = '';
+    }
+  }
+
+  // ───── SELECT FILE ─────
+  function selectFile(name) {
+    if (!VAULT[name]) return;
+    state.selectedFile = name;
+    showDetail(VAULT[name]);
+    highlightTreeActive(name);
+    if (graphSvgSel) {
+      $$('.node-group').forEach(n => n.classList.remove('selected'));
+      const node = document.querySelector(`.node-group[data-name="${CSS.escape(name)}"]`);
+      if (node) node.classList.add('selected');
+    }
+    if (state.view === 'reader') renderReader(name);
+    $('#status-text').textContent = `SELECTED · ${name.replace(/_/g, ' ')}`;
+    if (window.innerWidth <= 1100) $('#detail').classList.add('show');
+  }
+
+  // ───── VIEW SWITCHING ─────
+  function updateView() {
+    $$('.view-pane').forEach(p => p.classList.remove('active'));
+    $$('.view-tabs button').forEach(b => b.classList.toggle('active', b.dataset.view === state.view));
+    $(`#${state.view}-pane`).classList.add('active');
+    if (state.view === 'reader') {
+      if (state.selectedFile) renderReader(state.selectedFile);
+      else $('#reader-inner').innerHTML = '<div style="text-align:center;padding-top:80px;color:var(--text-3);font-family:JetBrains Mono;font-size:11px;letter-spacing:0.18em;">ОБЕРІТЬ ФАЙЛ ЗЛІВА АБО НА ГРАФІ</div>';
+    } else if (state.view === 'canvas') {
+      renderCanvas();
+    }
+  }
+  $$('.view-tabs button').forEach(b => {
+    b.addEventListener('click', () => {
+      state.view = b.dataset.view;
+      updateView();
+      if (window.innerWidth <= 768) {
+        $('#search-container').classList.remove('show');
+      }
+    });
+  });
+
+  // ───── SEARCH ─────
+  $('#search').addEventListener('input', (e) => {
+    state.search = e.target.value.trim();
+    applyFilters();
+    const q = state.search.toLowerCase();
+    $$('.tree-item').forEach(el => {
+      const m = !q || el.dataset.name.toLowerCase().includes(q) ||
+        (VAULT[el.dataset.name] && VAULT[el.dataset.name].content.toLowerCase().includes(q));
+      el.style.display = m ? '' : 'none';
+    });
+  });
+
+  // ───── ZOOM ─────
+  $('#zoom-in').addEventListener('click', () => {
+    if (state.view === 'graph' && graphSvgSel && graphZoom)
+      graphSvgSel.transition().call(graphZoom.scaleBy, 1.4);
+  });
+  $('#zoom-out').addEventListener('click', () => {
+    if (state.view === 'graph' && graphSvgSel && graphZoom)
+      graphSvgSel.transition().call(graphZoom.scaleBy, 1 / 1.4);
+  });
+  $('#zoom-reset').addEventListener('click', () => {
+    if (state.view === 'graph' && graphSvgSel && graphZoom)
+      graphSvgSel.transition().call(graphZoom.transform, d3.zoomIdentity);
+  });
+
+  // ───── MOBILE DRAWERS ─────
+  function openSidebar() {
+    $('#sidebar').classList.add('show');
+    $('#drawer-backdrop').classList.add('show');
+    $('#btn-hamburger').textContent = '✕';
+  }
+  function closeDrawer() {
+    $('#sidebar').classList.remove('show');
+    $('#drawer-backdrop').classList.remove('show');
+    $('#btn-hamburger').textContent = '☰';
+  }
+  function closeDetailDrawer() { $('#detail').classList.remove('show'); }
+  $('#btn-hamburger').addEventListener('click', () => {
+    $('#sidebar').classList.contains('show') ? closeDrawer() : openSidebar();
+  });
+  $('#btn-sidebar-close').addEventListener('click', closeDrawer);
+  $('#btn-detail-close').addEventListener('click', closeDetailDrawer);
+  $('#drawer-backdrop').addEventListener('click', () => { closeDrawer(); closeDetailDrawer(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeDrawer(); closeDetailDrawer();
+    }
+  });
+
+  // ───── INIT ─────
+  renderLayers();
+  renderCitiesFilter();
+  renderFileTree();
+  renderGraph();
+  $('#status-text').textContent = `VAULT · ${Object.keys(VAULT).length} NODES · ${CANVAS.edges ? CANVAS.edges.length : 0} CANVAS LINKS`;
+  setTimeout(() => selectFile('00_Index'), 200);
+
+  $('#loading').classList.add('hidden');
+  setTimeout(() => $('#loading').remove(), 400);
+
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (state.view === 'graph') renderGraph();
+      else if (state.view === 'canvas') renderCanvas();
+    }, 200);
+  });
+})();
+</script>
+</body>
+</html>
