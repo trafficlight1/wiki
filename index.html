@@ -1040,37 +1040,37 @@ button { font-family: inherit; }
   }
 
   async function loadData() {
-    const setText = (t) => { $('#loading-text').textContent = t; };
-    setText('Завантаження манифесту…');
-    let manifest;
-    try {
-      const r = await fetch('./manifest.json', { cache: 'no-store' });
-      if (!r.ok) throw new Error('manifest fetch ' + r.status);
-      manifest = await r.json();
-    } catch (e) {
-      throw new Error('Не вдалося прочитати _manifest.json. ' + e.message);
-    }
-    setText(`Завантаження ${manifest.files.length} файлів…`);
-    const filePromises = manifest.files.map(async (path) => {
-      const r = await fetch('./' + encodeURI(path), { cache: 'no-store' });
-      if (!r.ok) throw new Error(`fetch ${path}: ${r.status}`);
-      const content = await r.text();
-      return { path, content };
-    });
-    const canvasPromise = fetch('./' + encodeURI(manifest.canvas), { cache: 'no-store' })
-      .then(r => r.ok ? r.json() : { nodes: [], edges: [] })
-      .catch(() => ({ nodes: [], edges: [] }));
-
-    const [files, canvas] = await Promise.all([Promise.all(filePromises), canvasPromise]);
-
-    setText('Парсинг…');
-    const vault = {};
-    files.forEach(({ path, content }) => {
-      const f = parseFile(path, content);
-      vault[f.name] = f;
-    });
-    return { vault, canvas };
+  const setText = (t) => { $('#loading-text').textContent = t; };
+  setText('Завантаження манифесту...');
+  let manifest;
+  try {
+    const r = await fetch('./_manifest.json', { cache: 'no-store' });
+    if (!r.ok) throw new Error('manifest fetch ' + r.status);
+    manifest = await r.json();
+  } catch (e) {
+    throw new Error('Не вдалося прочитати _manifest.json. ' + e.message);
   }
+  setText(`Завантаження ${manifest.files.length} файлів...`);
+  const filePromises = manifest.files.map(async (path) => {
+    const r = await fetch('./' + path, { cache: 'no-store' }); // ← без encodeURI
+    if (!r.ok) throw new Error(`fetch ${path}: ${r.status}`);
+    const content = await r.text();
+    return { path, content };
+  });
+  const canvasPromise = fetch('./' + manifest.canvas, { cache: 'no-store' }) // ← без encodeURI
+    .then(r => r.ok ? r.json() : { nodes: [], edges: [] })
+    .catch(() => ({ nodes: [], edges: [] }));
+
+  const [files, canvas] = await Promise.all([Promise.all(filePromises), canvasPromise]);
+
+  setText('Парсинг...');
+  const vault = {};
+  files.forEach(({ path, content }) => {
+    const f = parseFile(path, content);
+    vault[f.name] = f;
+  });
+  return { vault, canvas };
+}
 
   let DATA;
   try {
