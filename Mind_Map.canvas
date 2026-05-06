@@ -1,0 +1,139 @@
+{
+  "nodes": [
+    {"id": "title", "type": "text", "x": -500, "y": -1850, "width": 1000, "height": 100, "text": "# 🌃 Міські політики вуличного освітлення\n*Mind map по 7 європейських містах*"},
+
+    {"id": "methodology", "type": "file", "file": "01_Методологія_дослідження.md", "x": -1700, "y": -1500, "width": 320, "height": 100, "color": "6"},
+    {"id": "sources", "type": "file", "file": "Sources.md", "x": 1380, "y": -1500, "width": 320, "height": 100, "color": "6"},
+
+    {"id": "science", "type": "file", "file": "10_Наукове_підґрунтя.md", "x": -1500, "y": -1200, "width": 360, "height": 100, "color": "5"},
+    {"id": "legis", "type": "file", "file": "11_Законодавчі_рамки.md", "x": -800, "y": -1200, "width": 360, "height": 100, "color": "5"},
+    {"id": "tech", "type": "file", "file": "12_Технічні_стандарти.md", "x": 100, "y": -1200, "width": 360, "height": 100, "color": "5"},
+    {"id": "method", "type": "file", "file": "13_Інструменти_та_методології.md", "x": 800, "y": -1200, "width": 380, "height": 100, "color": "5"},
+
+    {"id": "index", "type": "file", "file": "00_Index.md", "x": -200, "y": -50, "width": 400, "height": 120, "color": "4"},
+    {"id": "synth", "type": "file", "file": "02_Cross-city_синтез.md", "x": -200, "y": 150, "width": 400, "height": 100, "color": "4"},
+
+    {"id": "lyon", "type": "file", "file": "cities/Lyon_Огляд.md", "x": -1700, "y": -700, "width": 360, "height": 100, "color": "3"},
+    {"id": "lyon_proc", "type": "file", "file": "cities/Lyon_Процес_створення.md", "x": -2100, "y": -550, "width": 320, "height": 80},
+    {"id": "lyon_log", "type": "file", "file": "cities/Lyon_Логіка_рішень.md", "x": -2100, "y": -440, "width": 320, "height": 80},
+    {"id": "lyon_tech", "type": "file", "file": "cities/Lyon_Технічні_рішення.md", "x": -2100, "y": -330, "width": 320, "height": 80},
+
+    {"id": "zurich", "type": "file", "file": "cities/Zürich_Огляд.md", "x": -1700, "y": -100, "width": 360, "height": 100, "color": "3"},
+    {"id": "zurich_proc", "type": "file", "file": "cities/Zürich_Процес_створення.md", "x": -2100, "y": 50, "width": 320, "height": 80},
+    {"id": "zurich_log", "type": "file", "file": "cities/Zürich_Логіка_рішень.md", "x": -2100, "y": 160, "width": 320, "height": 80},
+    {"id": "zurich_tech", "type": "file", "file": "cities/Zürich_Технічні_рішення.md", "x": -2100, "y": 270, "width": 320, "height": 80},
+
+    {"id": "vienna", "type": "file", "file": "cities/Vienna_Огляд.md", "x": -1700, "y": 500, "width": 360, "height": 100, "color": "3"},
+    {"id": "vienna_proc", "type": "file", "file": "cities/Vienna_Процес_створення.md", "x": -2100, "y": 650, "width": 320, "height": 80},
+    {"id": "vienna_log", "type": "file", "file": "cities/Vienna_Логіка_рішень.md", "x": -2100, "y": 760, "width": 320, "height": 80},
+    {"id": "vienna_tech", "type": "file", "file": "cities/Vienna_Технічні_рішення.md", "x": -2100, "y": 870, "width": 320, "height": 80},
+
+    {"id": "geneva", "type": "file", "file": "cities/Geneva_Огляд.md", "x": 1340, "y": -700, "width": 360, "height": 100, "color": "3"},
+    {"id": "geneva_proc", "type": "file", "file": "cities/Geneva_Процес_створення.md", "x": 1750, "y": -550, "width": 320, "height": 80},
+    {"id": "geneva_log", "type": "file", "file": "cities/Geneva_Логіка_рішень.md", "x": 1750, "y": -440, "width": 320, "height": 80},
+    {"id": "geneva_tech", "type": "file", "file": "cities/Geneva_Технічні_рішення.md", "x": 1750, "y": -330, "width": 320, "height": 80},
+
+    {"id": "amsterdam", "type": "file", "file": "cities/Amsterdam_Огляд.md", "x": 1340, "y": -100, "width": 360, "height": 100, "color": "3"},
+    {"id": "amsterdam_proc", "type": "file", "file": "cities/Amsterdam_Процес_створення.md", "x": 1750, "y": 50, "width": 320, "height": 80},
+    {"id": "amsterdam_log", "type": "file", "file": "cities/Amsterdam_Логіка_рішень.md", "x": 1750, "y": 160, "width": 320, "height": 80},
+    {"id": "amsterdam_tech", "type": "file", "file": "cities/Amsterdam_Технічні_рішення.md", "x": 1750, "y": 270, "width": 320, "height": 80},
+
+    {"id": "copenhagen", "type": "file", "file": "cities/Copenhagen_Огляд.md", "x": 1340, "y": 500, "width": 360, "height": 100, "color": "3"},
+    {"id": "copenhagen_proc", "type": "file", "file": "cities/Copenhagen_Процес_створення.md", "x": 1750, "y": 650, "width": 320, "height": 80},
+    {"id": "copenhagen_log", "type": "file", "file": "cities/Copenhagen_Логіка_рішень.md", "x": 1750, "y": 760, "width": 320, "height": 80},
+    {"id": "copenhagen_tech", "type": "file", "file": "cities/Copenhagen_Технічні_рішення.md", "x": 1750, "y": 870, "width": 320, "height": 80},
+
+    {"id": "madrid", "type": "file", "file": "cities/Madrid_Огляд.md", "x": -200, "y": 500, "width": 360, "height": 100, "color": "3"},
+    {"id": "madrid_proc", "type": "file", "file": "cities/Madrid_Процес_створення.md", "x": -200, "y": 650, "width": 360, "height": 80},
+    {"id": "madrid_log", "type": "file", "file": "cities/Madrid_Логіка_рішень.md", "x": -200, "y": 760, "width": 360, "height": 80},
+    {"id": "madrid_tech", "type": "file", "file": "cities/Madrid_Технічні_рішення.md", "x": -200, "y": 870, "width": 360, "height": 80},
+
+    {"id": "alan", "type": "file", "file": "concepts/ALAN_та_біорізноманіття.md", "x": -1500, "y": -1000, "width": 280, "height": 80, "color": "1"},
+    {"id": "circ", "type": "file", "file": "concepts/Циркадні_ритми.md", "x": -1180, "y": -1000, "width": 280, "height": 80, "color": "1"},
+    {"id": "darksky", "type": "file", "file": "concepts/Dark_Sky_рух.md", "x": -860, "y": -1000, "width": 280, "height": 80, "color": "1"},
+
+    {"id": "arrete", "type": "file", "file": "concepts/Французький_arrêté_2018.md", "x": -540, "y": -1000, "width": 280, "height": 80, "color": "1"},
+    {"id": "en", "type": "file", "file": "concepts/EN_13201.md", "x": 100, "y": -1000, "width": 280, "height": 80, "color": "1"},
+    {"id": "led", "type": "file", "file": "concepts/LED_та_теплий_спектр.md", "x": 420, "y": -1000, "width": 280, "height": 80, "color": "1"},
+    {"id": "smart", "type": "file", "file": "concepts/Smart_lighting_та_контроль.md", "x": 100, "y": -890, "width": 280, "height": 80, "color": "1"},
+
+    {"id": "plan-l", "type": "file", "file": "concepts/Plan_Lumière_концепція.md", "x": 800, "y": -1000, "width": 280, "height": 80, "color": "1"},
+    {"id": "concert", "type": "file", "file": "concepts/Концертація_citizen_engagement.md", "x": 1100, "y": -1000, "width": 280, "height": 80, "color": "1"},
+    {"id": "audit", "type": "file", "file": "concepts/Lichtaudit.md", "x": 800, "y": -890, "width": 280, "height": 80, "color": "1"},
+    {"id": "zoning", "type": "file", "file": "concepts/Світлове_зонування.md", "x": 1100, "y": -890, "width": 280, "height": 80, "color": "1"},
+    {"id": "trame", "type": "file", "file": "concepts/Trame_noire.md", "x": 1400, "y": -890, "width": 280, "height": 80, "color": "1"},
+
+    {"id": "legend", "type": "text", "x": -500, "y": 1100, "width": 1000, "height": 200, "text": "## Легенда\n\n🔵 Концепти (concepts/) — теоретичні і операційні поняття\n🟢 Міста — огляд + 4 файли (процес, рішення, технічні)\n🟣 Тематичні розділи — наукова, законодавча, технічна, методологічна основа\n🟡 Центр / синтез — індекс і крос-міські патерни\n⚪ Допоміжні — методологія дослідження і повна бібліографія"}
+  ],
+  "edges": [
+    {"id": "e_idx_sci", "fromNode": "index", "fromSide": "top", "toNode": "science", "toSide": "bottom"},
+    {"id": "e_idx_legis", "fromNode": "index", "fromSide": "top", "toNode": "legis", "toSide": "bottom"},
+    {"id": "e_idx_tech", "fromNode": "index", "fromSide": "top", "toNode": "tech", "toSide": "bottom"},
+    {"id": "e_idx_method", "fromNode": "index", "fromSide": "top", "toNode": "method", "toSide": "bottom"},
+
+    {"id": "e_idx_lyon", "fromNode": "index", "fromSide": "left", "toNode": "lyon", "toSide": "right", "label": "Ліон"},
+    {"id": "e_idx_zurich", "fromNode": "index", "fromSide": "left", "toNode": "zurich", "toSide": "right", "label": "Цюрих"},
+    {"id": "e_idx_vienna", "fromNode": "index", "fromSide": "left", "toNode": "vienna", "toSide": "right", "label": "Відень"},
+    {"id": "e_idx_geneva", "fromNode": "index", "fromSide": "right", "toNode": "geneva", "toSide": "left", "label": "Женева"},
+    {"id": "e_idx_amsterdam", "fromNode": "index", "fromSide": "right", "toNode": "amsterdam", "toSide": "left", "label": "Амстердам"},
+    {"id": "e_idx_copenhagen", "fromNode": "index", "fromSide": "right", "toNode": "copenhagen", "toSide": "left", "label": "Копенгаген"},
+    {"id": "e_idx_madrid", "fromNode": "index", "fromSide": "bottom", "toNode": "madrid", "toSide": "top", "label": "Мадрид"},
+    {"id": "e_idx_synth", "fromNode": "index", "fromSide": "bottom", "toNode": "synth", "toSide": "top"},
+
+    {"id": "e_lyon_proc", "fromNode": "lyon", "fromSide": "left", "toNode": "lyon_proc", "toSide": "right"},
+    {"id": "e_lyon_log", "fromNode": "lyon", "fromSide": "left", "toNode": "lyon_log", "toSide": "right"},
+    {"id": "e_lyon_tech", "fromNode": "lyon", "fromSide": "left", "toNode": "lyon_tech", "toSide": "right"},
+
+    {"id": "e_zur_proc", "fromNode": "zurich", "fromSide": "left", "toNode": "zurich_proc", "toSide": "right"},
+    {"id": "e_zur_log", "fromNode": "zurich", "fromSide": "left", "toNode": "zurich_log", "toSide": "right"},
+    {"id": "e_zur_tech", "fromNode": "zurich", "fromSide": "left", "toNode": "zurich_tech", "toSide": "right"},
+
+    {"id": "e_vie_proc", "fromNode": "vienna", "fromSide": "left", "toNode": "vienna_proc", "toSide": "right"},
+    {"id": "e_vie_log", "fromNode": "vienna", "fromSide": "left", "toNode": "vienna_log", "toSide": "right"},
+    {"id": "e_vie_tech", "fromNode": "vienna", "fromSide": "left", "toNode": "vienna_tech", "toSide": "right"},
+
+    {"id": "e_gen_proc", "fromNode": "geneva", "fromSide": "right", "toNode": "geneva_proc", "toSide": "left"},
+    {"id": "e_gen_log", "fromNode": "geneva", "fromSide": "right", "toNode": "geneva_log", "toSide": "left"},
+    {"id": "e_gen_tech", "fromNode": "geneva", "fromSide": "right", "toNode": "geneva_tech", "toSide": "left"},
+
+    {"id": "e_ams_proc", "fromNode": "amsterdam", "fromSide": "right", "toNode": "amsterdam_proc", "toSide": "left"},
+    {"id": "e_ams_log", "fromNode": "amsterdam", "fromSide": "right", "toNode": "amsterdam_log", "toSide": "left"},
+    {"id": "e_ams_tech", "fromNode": "amsterdam", "fromSide": "right", "toNode": "amsterdam_tech", "toSide": "left"},
+
+    {"id": "e_cop_proc", "fromNode": "copenhagen", "fromSide": "right", "toNode": "copenhagen_proc", "toSide": "left"},
+    {"id": "e_cop_log", "fromNode": "copenhagen", "fromSide": "right", "toNode": "copenhagen_log", "toSide": "left"},
+    {"id": "e_cop_tech", "fromNode": "copenhagen", "fromSide": "right", "toNode": "copenhagen_tech", "toSide": "left"},
+
+    {"id": "e_mad_proc", "fromNode": "madrid", "fromSide": "bottom", "toNode": "madrid_proc", "toSide": "top"},
+    {"id": "e_mad_log", "fromNode": "madrid_proc", "fromSide": "bottom", "toNode": "madrid_log", "toSide": "top"},
+    {"id": "e_mad_tech", "fromNode": "madrid_log", "fromSide": "bottom", "toNode": "madrid_tech", "toSide": "top"},
+
+    {"id": "e_sci_alan", "fromNode": "science", "fromSide": "top", "toNode": "alan", "toSide": "bottom"},
+    {"id": "e_sci_circ", "fromNode": "science", "fromSide": "top", "toNode": "circ", "toSide": "bottom"},
+    {"id": "e_sci_dsky", "fromNode": "science", "fromSide": "top", "toNode": "darksky", "toSide": "bottom"},
+
+    {"id": "e_legis_arrete", "fromNode": "legis", "fromSide": "top", "toNode": "arrete", "toSide": "bottom"},
+
+    {"id": "e_tech_en", "fromNode": "tech", "fromSide": "top", "toNode": "en", "toSide": "bottom"},
+    {"id": "e_tech_led", "fromNode": "tech", "fromSide": "top", "toNode": "led", "toSide": "bottom"},
+    {"id": "e_tech_smart", "fromNode": "tech", "fromSide": "top", "toNode": "smart", "toSide": "bottom"},
+
+    {"id": "e_method_planl", "fromNode": "method", "fromSide": "top", "toNode": "plan-l", "toSide": "bottom"},
+    {"id": "e_method_concert", "fromNode": "method", "fromSide": "top", "toNode": "concert", "toSide": "bottom"},
+    {"id": "e_method_audit", "fromNode": "method", "fromSide": "top", "toNode": "audit", "toSide": "bottom"},
+    {"id": "e_method_zoning", "fromNode": "method", "fromSide": "top", "toNode": "zoning", "toSide": "bottom"},
+    {"id": "e_method_trame", "fromNode": "method", "fromSide": "top", "toNode": "trame", "toSide": "bottom"},
+
+    {"id": "e_lyon_arrete", "fromNode": "lyon", "fromSide": "top", "toNode": "arrete", "toSide": "bottom", "color": "2", "label": "FR Arrêté"},
+    {"id": "e_lyon_planl", "fromNode": "lyon", "fromSide": "top", "toNode": "plan-l", "toSide": "bottom", "color": "2"},
+    {"id": "e_zurich_planl", "fromNode": "zurich", "fromSide": "top", "toNode": "plan-l", "toSide": "bottom", "color": "2"},
+    {"id": "e_geneva_planl", "fromNode": "geneva", "fromSide": "top", "toNode": "plan-l", "toSide": "bottom", "color": "2"},
+    {"id": "e_lyon_trame", "fromNode": "lyon", "fromSide": "top", "toNode": "trame", "toSide": "bottom", "color": "2"},
+    {"id": "e_geneva_trame", "fromNode": "geneva", "fromSide": "top", "toNode": "trame", "toSide": "bottom", "color": "2", "label": "Центральна"},
+    {"id": "e_madrid_smart", "fromNode": "madrid", "fromSide": "top", "toNode": "smart", "toSide": "bottom", "color": "2", "label": "225K LED"},
+    {"id": "e_vienna_led", "fromNode": "vienna", "fromSide": "top", "toNode": "led", "toSide": "bottom", "color": "2"},
+    {"id": "e_amsterdam_audit", "fromNode": "amsterdam", "fromSide": "top", "toNode": "audit", "toSide": "bottom", "color": "2", "label": "Open data"},
+    {"id": "e_copenhagen_concert", "fromNode": "copenhagen", "fromSide": "top", "toNode": "concert", "toSide": "bottom", "color": "2", "label": "Lokaludvalg"},
+    {"id": "e_zurich_zoning", "fromNode": "zurich", "fromSide": "top", "toNode": "zoning", "toSide": "bottom", "color": "2"}
+  ]
+}
